@@ -104,10 +104,20 @@ def train(epoch):
         train_loss += loss.item()
         _, predicted = outputs.max(1)
         total += targets.size(0)
-        correct += predicted.eq(targets).sum().item()
+        batch_correct = predicted.eq(targets).sum().item()
+        correct += batch_correct
 
         progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
             % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+
+        # write to loss log
+        message = '[epoch: %d, batch: %5d] loss: %.3f, acc (%%): %.3f' % (
+            epoch + 1, batch_idx + 1,
+            loss.item(),
+            100. * batch_correct / len(inputs)
+        )
+        # print(message)
+        print(message, file=open(log_file, 'a' if os.path.isfile(log_file) else 'w'))
 
 def test(epoch):
     global best_acc
@@ -144,6 +154,7 @@ def test(epoch):
         best_acc = acc
 
 
+log_file = './checkpoint/loss_log.txt'
 for epoch in range(start_epoch, start_epoch+200):
     train(epoch)
     test(epoch)
